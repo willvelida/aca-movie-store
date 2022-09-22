@@ -60,3 +60,7 @@ resource sqlConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01
     value: 'Server=tcp:${sqlServer.name}${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${sqlDb.name};Persist Security Info=False;User ID=${sqlServer.properties.administratorLogin};Password=${adminLogin};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
   }
 }
+
+output sqlServerName string = sqlServer.name
+output sqlDbName string = sqlDb.name
+output sqlAdminLogin string = sqlServer.properties.administratorLogin

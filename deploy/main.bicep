@@ -20,7 +20,7 @@ param appInsightsName string = 'appins${applicationName}'
 param containerEnvironmentName string = 'env${applicationName}'
 
 @description('The name of the SQL Server instance')
-param sqlServerName string = 'sqldb${appInsightsName}'
+param sqlServerName string = 'sqldb${applicationName}'
 
 @description('The SQL Admin Login username')
 param sqlAdminUsername string
@@ -28,10 +28,32 @@ param sqlAdminUsername string
 @description('The SQL Admin Password')
 param sqlAdmin string
 
+// General Variables
+var movieDatabaseName = 'Movie'
+
+// Movie Web App variables
 var movieWebAppName = 'movie-web'
 var movieWebAppCpu = '0.5'
 var movieWebAppMemory = '1'
-var movieDatabaseName = 'Movie'
+
+// Catalog API variables
+var catalogApiName = 'movie-catalog'
+var catalogApiCpu = '0.5'
+var catalogApiMemory = '1'
+var catlogApiEnv = [
+  {
+    name: 'APPINSIGHTS_CONNECTION_STRING'
+    value: appInsights.properties.ConnectionString
+  }
+  {
+    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+    value: appInsights.properties.InstrumentationKey
+  }
+  {
+    name: 'AZURE_SQL_CONNECTIONSTRING'
+    value: 'Server=tcp:${sql.outputs.sqlServerName}${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${sql.outputs.sqlDbName};Persist Security Info=False;User ID=${sql.outputs.sqlAdminLogin};Password=${sqlAdmin};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+  }
+]
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
@@ -113,5 +135,22 @@ module storeApp 'modules/httpContainerApp.bicep' = {
     location: location
     cpuCore: movieWebAppCpu
     memorySize: movieWebAppMemory
+  }
+}
+
+module catalogApp 'modules/httpContainerApp.bicep' = {
+  name: 'catalog-app'
+  params: {
+    acrPasswordSecret: keyVault.getSecret('acr-primary-password') 
+    acrServerName: containerRegistry.outputs.loginServer
+    acrUsername: keyVault.getSecret('acr-username')
+    containerAppEnvId: env.outputs.containerAppEnvId
+    containerAppName: catalogApiName
+    containerImage: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+    cpuCore: catalogApiCpu
+    isExternal: false
+    location: location
+    memorySize: catalogApiMemory
+    envVariables: catlogApiEnv
   }
 }
