@@ -26,7 +26,7 @@ param sqlServerName string = 'sqldb${appInsightsName}'
 param sqlAdminUsername string
 
 @description('The SQL Admin Password')
-param sqlAdminPassword string
+param sqlAdmin string
 
 var movieWebAppName = 'movie-web'
 var movieWebAppCpu = '0.5'
@@ -81,7 +81,7 @@ module containerRegistry 'modules/containerRegistry.bicep' = {
 module sql 'modules/sqlServer.bicep' = {
   name: 'sql'
   params: {
-    adminLoginPassword: sqlAdminPassword
+    adminLogin: sqlAdmin
     adminLoginUserName: sqlAdminUsername
     keyVaultName: keyVault.name
     location: location
