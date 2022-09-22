@@ -11,7 +11,7 @@ param location string
 param adminLoginUserName string
 
 @description('The admin password of the SQL logical server')
-param adminLoginPassword string
+param adminLogin string
 
 @description('The name of the Key Vault to store the SQL secrets')
 param keyVaultName string
@@ -27,7 +27,7 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   location: location
   properties: {
    administratorLogin: adminLoginUserName
-   administratorLoginPassword: adminLoginPassword 
+   administratorLoginPassword: adminLogin 
   }
   identity: {
     type: 'SystemAssigned'
