@@ -19,9 +19,19 @@ param appInsightsName string = 'appins${applicationName}'
 @description('The name of the Container App Environment')
 param containerEnvironmentName string = 'env${applicationName}'
 
+@description('The name of the SQL Server instance')
+param sqlServerName string = 'sqldb${appInsightsName}'
+
+@description('The SQL Admin Login username')
+param sqlAdminUsername string
+
+@description('The SQL Admin Password')
+param sqlAdminPassword string
+
 var movieWebAppName = 'movie-web'
 var movieWebAppCpu = '0.5'
 var movieWebAppMemory = '1'
+var movieDatabaseName = 'Movie'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
@@ -65,6 +75,18 @@ module containerRegistry 'modules/containerRegistry.bicep' = {
     containerRegistryName: containerRegistryName
     keyVaultName: keyVault.name
     location: location
+  }
+}
+
+module sql 'modules/sqlServer.bicep' = {
+  name: 'sql'
+  params: {
+    adminLoginPassword: sqlAdminPassword
+    adminLoginUserName: sqlAdminUsername
+    keyVaultName: keyVault.name
+    location: location
+    sqlDatabaseName: movieDatabaseName
+    sqlServerName: sqlServerName
   }
 }
 
