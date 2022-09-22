@@ -11,7 +11,6 @@ param location string
 param adminLoginUserName string
 
 @description('The admin password of the SQL logical server')
-@secure()
 param adminLoginPassword string
 
 @description('The name of the Key Vault to store the SQL secrets')
