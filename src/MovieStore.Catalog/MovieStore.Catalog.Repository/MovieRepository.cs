@@ -1,21 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MovieStore.Catalog.Common.Models;
 using MovieStore.Catalog.Repository.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovieStore.Catalog.Repository
 {
     public class MovieRepository : IMovieRepository
     {
         private readonly MovieContext _context;
+        private readonly ILogger _logger;
 
-        public MovieRepository(MovieContext context)
+        public MovieRepository(MovieContext context, ILogger<MovieRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task AddMovieAsync(Movie movie)
@@ -27,6 +25,7 @@ namespace MovieStore.Catalog.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(AddMovieAsync)}: {ex.Message}");
                 throw;
             }
         }
@@ -40,6 +39,7 @@ namespace MovieStore.Catalog.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(DeleteMovieAsync)}: {ex.Message}");
                 throw;
             }
         }
@@ -54,6 +54,7 @@ namespace MovieStore.Catalog.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(GetMovieAsync)}: {ex.Message}");
                 throw;
             }
         }
@@ -66,10 +67,11 @@ namespace MovieStore.Catalog.Repository
                     .ToListAsync();
 
                 return movies;
-                    
+
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(GetMoviesAsync)}: {ex.Message}");
                 throw;
             }
         }
@@ -83,6 +85,7 @@ namespace MovieStore.Catalog.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(UpdateMovieAsync)}: {ex.Message}");
                 throw;
             }
         }

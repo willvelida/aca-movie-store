@@ -1,21 +1,20 @@
-﻿using MovieStore.Catalog.Common.Models;
+﻿using Microsoft.Extensions.Logging;
+using MovieStore.Catalog.Common.Models;
 using MovieStore.Catalog.Repository.Interfaces;
 using MovieStore.Catalog.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovieStore.Catalog.Services
 {
     public class MovieService : IMovieService
     {
-        private IMovieRepository _movieRepository;
+        private readonly IMovieRepository _movieRepository;
+        private readonly ILogger _logger;
 
-        public MovieService(IMovieRepository movieRepository)
+
+        public MovieService(IMovieRepository movieRepository, ILogger<MovieService> logger)
         {
             _movieRepository=movieRepository;
+            _logger = logger;
         }
 
         public async Task CreateMovie(Movie movie)
@@ -26,6 +25,7 @@ namespace MovieStore.Catalog.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(CreateMovie)}: {ex.Message}");
                 throw;
             }
         }
@@ -45,6 +45,7 @@ namespace MovieStore.Catalog.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(DeleteMovie)}: {ex.Message}");
                 throw;
             }
         }
@@ -57,8 +58,9 @@ namespace MovieStore.Catalog.Services
 
                 return movies;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(GetAllMovies)}: {ex.Message}");
                 throw;
             }
         }
@@ -78,6 +80,7 @@ namespace MovieStore.Catalog.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(GetMovieById)}: {ex.Message}");
                 throw;
             }
         }
@@ -102,6 +105,7 @@ namespace MovieStore.Catalog.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown in {nameof(UpdateMovie)}: {ex.Message}");
                 throw;
             }
         }
