@@ -1,0 +1,97 @@
+name: Deploy Catalog API Service
+
+env:
+  DOTNET_VERSION: 6.0.x
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: './src/MovieStore.Catalog'
+
+jobs:
+  build-api-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+      - name: 'Setup dotnet'
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: env.DOTNET_VERSION
+      - name: 'Install Dependencies'
+        run: dotnet restore
+      - name: 'Build project'
+        run: dotnet build --no-restore
+      - name: 'Run tests'
+        run: dotnet test --no-build --verbosity normal --logger trx --results-directory "TestResults-${{ env.DOTNET_VERSION }}"
+      - name: 'Upload test results'
+        uses: actions/upload-artifact@v3
+        with:
+          name: dotnet-results-${{ env.DOTNET_VERSION }}
+          path: TestResults-${{ env.DOTNET_VERSION }}
+        if: ${{ always() }}
+
+  
+  build-container-image:
+    runs-on: ubuntu-latest
+    needs: [build-api-project]
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+      
+      - name: 'Login via Azure CLI'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+      - name: Get ACR name
+        id: getacrname
+        run: |
+          acrName=$(az acr list --resource-group ${{ secrets.AZURE_RG }} --query "[0].name" -o tsv)
+          echo "::set-output name=acrName::$acrName"
+      
+      - name: Get ACR Credentials
+        id: getacrcreds
+        run: |
+          loginServer=$(az acr list --resource-group ${{ secrets.AZURE_RG }} --query "[0].loginServer" -o tsv)
+          loginName=$(az acr credential show -n ${{ steps.getacrname.outputs.acrName }} --resource-group ${{ secrets.AZURE_RG }} --query username -o tsv)
+          password=$(az acr credential show -n ${{ steps.getacrname.outputs.acrName }} --resource-group ${{ secrets.AZURE_RG }} --query "passwords[0].value" -o tsv)
+          echo "::set-output name=loginServer::$loginServer"
+          echo "::set-output name=loginName::$loginName"
+          echo "::set-output name=password::$password"
+      - name: 'Build and Push API Image to ACR'
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ steps.getacrcreds.outputs.loginServer }}
+          username: ${{ steps.getacrname.outputs.acrName }}
+          password: ${{ steps.getacrcreds.outputs.password }}
+      - run: |
+          docker build . -t ${{ steps.getacrcreds.outputs.loginServer }}/store:${{ github.sha }}
+          docker push ${{ steps.getacrcreds.outputs.loginServer }}/store:${{ github.sha }}
+  deploy-api-image:
+    runs-on: ubuntu-latest
+    needs: build-container-image
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+
+      - name: 'Login via Azure CLI'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get ACR Login Server
+        id: getacrserver
+        run: |
+          loginServer=$(az acr list --resource-group ${{ secrets.AZURE_RG }} --query "[0].loginServer" -o tsv)
+          echo "::set-output name=loginServer::$loginServer"
+      - name: 'Deploy Container App'
+        uses: Azure/cli@v1
+        with:
+          inlineScript: |
+            echo "Installing containerapp extension"
+            az extension add -n containerapp --yes
+            echo "Starting Deploying"
+            az containerapp update -n movie-catalog -g ${{ secrets.AZURE_RG }} -i ${{ steps.getacrserver.outputs.loginServer }}/store:${{ github.sha }} --debug
