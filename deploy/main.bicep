@@ -28,6 +28,12 @@ param sqlAdminUsername string
 @description('The SQL Admin Password')
 param sqlAdmin string
 
+@description('The container image used by the web app')
+param webAppImage string
+
+@description('The container image used by the Catalog API')
+param catalogApiImage string
+
 // General Variables
 var movieDatabaseName = 'Movie'
 
@@ -35,6 +41,20 @@ var movieDatabaseName = 'Movie'
 var movieWebAppName = 'movie-web'
 var movieWebAppCpu = '0.5'
 var movieWebAppMemory = '1'
+var movieWebAppEnv = [
+  {
+    name: 'APPINSIGHTS_CONNECTION_STRING'
+    value: appInsights.properties.ConnectionString
+  }
+  {
+    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+    value: appInsights.properties.InstrumentationKey
+  }
+  {
+    name: 'CatalogApi'
+    vale: catalogApp.outputs.fqdn
+  }
+]
 
 // Catalog API variables
 var catalogApiName = 'movie-catalog'
@@ -130,11 +150,12 @@ module storeApp 'modules/httpContainerApp.bicep' = {
     acrUsername: keyVault.getSecret('acr-username')
     containerAppEnvId: env.outputs.containerAppEnvId
     containerAppName: movieWebAppName
-    containerImage: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+    containerImage: webAppImage
     isExternal: true
     location: location
     cpuCore: movieWebAppCpu
     memorySize: movieWebAppMemory
+    envVariables: movieWebAppEnv
   }
 }
 
@@ -146,7 +167,7 @@ module catalogApp 'modules/httpContainerApp.bicep' = {
     acrUsername: keyVault.getSecret('acr-username')
     containerAppEnvId: env.outputs.containerAppEnvId
     containerAppName: catalogApiName
-    containerImage: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+    containerImage: catalogApiImage
     cpuCore: catalogApiCpu
     isExternal: false
     location: location

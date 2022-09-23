@@ -1,9 +1,43 @@
 ﻿@page "/"
+@using MovieStore.Web.Models
+@using MovieStore.Web.Services.Interfaces
+@inject ICatalogBackendClient _catalogBackendClient
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Movie Store</h1>
 
-Welcome to your new app.
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Release Date</th>
+            <th scope="col">Genre</th>
+            <th scope="col">Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var movie in _movies)
+        {
+            <tr>
+                <td>@movie.Title</td>
+                <td>@movie.ReleaseDate</td>
+                <td>@movie.Genre</td>
+                <td>@movie.Price</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code
+{
+    List<Movie> _movies = new List<Movie>();
+    bool _shouldRender = false;
+    protected override bool ShouldRender() => _shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _movies = await _catalogBackendClient.GetMovies();
+        _shouldRender = true;
+    }
+}

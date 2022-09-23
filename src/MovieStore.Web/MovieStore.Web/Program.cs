@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using MovieStore.Web.Data;
+using MovieStore.Web.Services;
+using MovieStore.Web.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddHttpClient("Catalog", (httpClient) => httpClient.BaseAddress = new Uri(builder.Configuration.GetValue<string>("CatalogApi")));
+builder.Services.AddScoped<ICatalogBackendClient, CatalogBackendClient>();
 
 var app = builder.Build();
 
