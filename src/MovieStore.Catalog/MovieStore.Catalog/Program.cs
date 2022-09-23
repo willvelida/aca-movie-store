@@ -7,10 +7,10 @@ using MovieStore.Catalog.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddControllers();
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddDbContext<MovieContext>(opt => opt.UseInMemoryDatabase("MovieDB"));
+builder.Services.AddDbContext<MovieContext>(opt => opt.UseSqlServer(Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")));
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddEndpointsApiExplorer();
