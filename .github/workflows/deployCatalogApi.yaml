@@ -24,18 +24,18 @@ jobs:
         run: dotnet restore
       - name: 'Build project'
         run: dotnet build --no-restore
-      - name: 'Run tests'
-        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory coverage
+      - name: Test
+        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory coverage        
       - name: Copy Coverage To Predictable Location
         run: cp coverage/*/coverage.cobertura.xml coverage/coverage.cobertura.xml
-      - name: Code Coverage Report
+      - name: Code Coverage Summary Report
         uses: irongut/CodeCoverageSummary@v1.0.2
         with:
           filename: coverage/coverage.cobertura.xml
           badge: true
-          format: markdown
-          output: both
-          thresholds: '60 80'
+          format: 'markdown'
+          output: 'both'
+
 
   
   build-container-image:
