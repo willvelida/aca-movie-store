@@ -52,7 +52,7 @@ var movieWebAppEnv = [
   }
   {
     name: 'CatalogApi'
-    vale: catalogApp.outputs.fqdn
+    value: catalogApp.outputs.fqdn
   }
 ]
 
