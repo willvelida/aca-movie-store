@@ -25,9 +25,9 @@ jobs:
       - name: 'Build project'
         run: dotnet build --no-restore
       - name: 'Run tests'
-        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./coverage
       - name: 'Copy Coverage to location'
-        run: cp ./src/MovieStore.Catalog/coverage/*/coverage.cobertura.xml coverage/coverage.cobertura.xml
+        run: cp coverage/*/coverage.cobertura.xml coverage/coverage.cobertura.xml
       - name: Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
