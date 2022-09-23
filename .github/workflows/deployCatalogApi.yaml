@@ -25,13 +25,19 @@ jobs:
       - name: 'Build project'
         run: dotnet build --no-restore
       - name: 'Run tests'
-        run: dotnet test --no-build --verbosity normal --logger trx --results-directory "TestResults-${{ env.DOTNET_VERSION }}"
-      - name: 'Upload test results'
-        uses: actions/upload-artifact@v3
+        run: dotnet test --no-build --verbosity normal --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          name: dotnet-results-${{ env.DOTNET_VERSION }}
-          path: TestResults-${{ env.DOTNET_VERSION }}
-        if: ${{ always() }}
+          filename: coverage/**/coverage.cobertura.xml
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '60 80'
 
   
   build-container-image:
@@ -68,8 +74,8 @@ jobs:
           username: ${{ steps.getacrname.outputs.acrName }}
           password: ${{ steps.getacrcreds.outputs.password }}
       - run: |
-          docker build . -t ${{ steps.getacrcreds.outputs.loginServer }}/store:${{ github.sha }}
-          docker push ${{ steps.getacrcreds.outputs.loginServer }}/store:${{ github.sha }}
+          docker build . -t ${{ steps.getacrcreds.outputs.loginServer }}/movie-store-catalog:${{ github.sha }}
+          docker push ${{ steps.getacrcreds.outputs.loginServer }}/movie-store-catalog:${{ github.sha }}
   deploy-api-image:
     runs-on: ubuntu-latest
     needs: build-container-image
@@ -94,4 +100,4 @@ jobs:
             echo "Installing containerapp extension"
             az extension add -n containerapp --yes
             echo "Starting Deploying"
-            az containerapp update -n movie-catalog -g ${{ secrets.AZURE_RG }} -i ${{ steps.getacrserver.outputs.loginServer }}/store:${{ github.sha }} --debug
+            az containerapp update -n movie-catalog -g ${{ secrets.AZURE_RG }} -i ${{ steps.getacrserver.outputs.loginServer }}/movie-store-catalog:${{ github.sha }} --debug
