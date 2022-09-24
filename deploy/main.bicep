@@ -43,6 +43,10 @@ var movieWebAppCpu = '0.5'
 var movieWebAppMemory = '1'
 var movieWebAppEnv = [
   {
+    name: 'ASPNETCORE_ENVIRONMENT'
+    value: 'Development'
+  }
+  {
     name: 'APPINSIGHTS_CONNECTION_STRING'
     value: appInsights.properties.ConnectionString
   }
@@ -61,6 +65,10 @@ var catalogApiName = 'movie-catalog'
 var catalogApiCpu = '0.5'
 var catalogApiMemory = '1'
 var catlogApiEnv = [
+  {
+    name: 'ASPNETCORE_ENVIRONMENT'
+    value: 'Development'
+  }
   {
     name: 'APPINSIGHTS_CONNECTION_STRING'
     value: appInsights.properties.ConnectionString
