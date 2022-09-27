@@ -164,17 +164,6 @@ module storeApp 'modules/httpContainerApp.bicep' = {
     cpuCore: movieWebAppCpu
     memorySize: movieWebAppMemory
     envVariables: movieWebAppEnv
-    healthProbes: [
-      {
-        type: 'liveness'
-        httpGet: {
-          path: '/healthz'
-          port: 8080
-        }
-        initialDelaySeconds: 7
-        periodSeconds: 3
-      }
-    ]
   }
 }
 
@@ -192,5 +181,16 @@ module catalogApp 'modules/httpContainerApp.bicep' = {
     location: location
     memorySize: catalogApiMemory
     envVariables: catlogApiEnv
+    healthProbes: [
+      {
+        type: 'liveness'
+        httpGet: {
+          path: '/healthz'
+          port: 8080
+        }
+        initialDelaySeconds: 7
+        periodSeconds: 3
+      }
+    ]
   }
 }
