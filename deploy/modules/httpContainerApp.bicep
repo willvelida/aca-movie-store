@@ -33,6 +33,9 @@ param cpuCore string
 @description('The amount of memory (in gibibytes, GiB) allocated to the container app')
 param memorySize string
 
+@description('The probes to apply in this Container App')
+param healthProbes array = []
+
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: containerAppName
   location: location
@@ -72,6 +75,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
         name: containerAppName
         image: containerImage
         env: envVariables
+        probes: healthProbes
         resources: {
           cpu: json(cpuCore)
           memory: '${memorySize}Gi'
