@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MovieStore.Catalog.Repository;
 using MovieStore.Catalog.Repository.Interfaces;
 using MovieStore.Catalog.Services;
@@ -26,7 +28,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapHealthChecks("/healthz").RequireHost("*:8080");
+app.MapHealthChecks("/healthz", new HealthCheckOptions
+{
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    }
+}).RequireHost("*:8080");
 
 app.UseHttpsRedirection();
 
