@@ -185,17 +185,13 @@ module catalogApp 'modules/httpContainerApp.bicep' = {
       {
         type: 'liveness'
         httpGet: {
-          path: '/healthz'
-          port: 8080
-          httpHeaders: [
-            {
-              name: 'Custom-Header'
-              value: 'liveness probe'
-            }
-          ]
+          path: '/healthz/liveness'
+          port: 80
         }
-        initialDelaySeconds: 7
-        periodSeconds: 3
+        initialDelaySeconds: 15
+        periodSeconds: 30
+        failureThreshold: 3
+        timeoutSeconds: 1
       }
     ]
   }

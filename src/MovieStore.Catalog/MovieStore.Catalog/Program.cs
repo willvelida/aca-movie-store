@@ -28,7 +28,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapHealthChecks("/healthz", new HealthCheckOptions
+app.MapHealthChecks("/healthz/liveness", new HealthCheckOptions
 {
     ResultStatusCodes =
     {
@@ -36,7 +36,7 @@ app.MapHealthChecks("/healthz", new HealthCheckOptions
         [HealthStatus.Degraded] = StatusCodes.Status200OK,
         [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
     }
-}).RequireHost("*:8080");
+});
 
 app.UseHttpsRedirection();
 
