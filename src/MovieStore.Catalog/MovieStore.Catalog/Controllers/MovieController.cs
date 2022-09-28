@@ -69,7 +69,7 @@ namespace MovieStore.Catalog.Controllers
         {
             try
             {
-                if (id != movie.ID)
+                if (id != movie.Id)
                 {
                     _logger.LogError($"Movie ID mismatch.");
                     return BadRequest();
@@ -96,7 +96,7 @@ namespace MovieStore.Catalog.Controllers
             {
                 await _movieService.CreateMovie(movie);
 
-                return CreatedAtAction("GetMovie", new { id = movie.ID }, movie);
+                return CreatedAtAction("GetMovie", movie);
             }
             catch (Exception ex)
             {

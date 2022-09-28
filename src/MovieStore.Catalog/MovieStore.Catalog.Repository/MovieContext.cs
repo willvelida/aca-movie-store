@@ -9,6 +9,11 @@ namespace MovieStore.Catalog.Repository
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Movie>().Property(p => p.Id).ValueGeneratedOnAdd();
+        }
+
         public DbSet<Movie> Movies { get; set; } = null!;
     }
 }

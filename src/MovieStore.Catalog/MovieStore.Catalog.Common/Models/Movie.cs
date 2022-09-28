@@ -1,10 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MovieStore.Catalog.Common.Models
 {
     public class Movie
     {
-        public int ID { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
         public string Title { get; set; }
         [DataType(DataType.Date)]
         public DateTime ReleaseDate { get; set; }

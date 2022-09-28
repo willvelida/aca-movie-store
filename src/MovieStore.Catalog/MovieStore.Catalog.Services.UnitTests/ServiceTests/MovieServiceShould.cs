@@ -137,9 +137,9 @@ namespace MovieStore.Catalog.Services.UnitTests.ServiceTests
         {
             var fixture = new Fixture();
             var movie = fixture.Create<Movie>();
-            movie.ID = 1;
+            movie.Id = 1;
             var movieToUpdate = fixture.Create<Movie>();
-            movieToUpdate.ID = 1;
+            movieToUpdate.Id = 1;
 
             _movieRepositoryMock.Setup(x => x.GetMovieAsync(It.IsAny<int>())).ReturnsAsync(movieToUpdate);
 
