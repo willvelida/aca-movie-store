@@ -1,0 +1,70 @@
+﻿@page "/movie/{MovieId:int}"
+
+@using MovieStore.Web.Models
+@using MovieStore.Web.Services.Interfaces
+
+@inject ICatalogBackendClient _catalogBackendClient
+
+<h3>Movie</h3>
+
+@if (NotFound && !Loading)
+{
+    <div class="alert alert-warning">A movie with that id doesn't exist</div>
+}
+else
+{
+    @if (Movie is null || Loading)
+    {
+        <div class="alert alert-info">Loading...</div>
+    }
+    else
+    {
+        <h4>@Movie.Title</h4>
+        <p>@Movie.Price</p>
+        <p>@Movie.Genre</p>
+        <p>@Movie.ReleaseDate</p>
+    }
+}
+
+@code {
+    private bool Loading;
+
+    [Parameter]
+    public int MovieId { get; set; }
+
+    private Movie? Movie { get; set; }
+
+    private bool NotFound = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadMovieAsync();
+
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task LoadMovieAsync()
+    {
+        if (Loading)
+        {
+            return;
+        }
+
+        NotFound = false;
+        Movie = null;
+
+        Loading = true;
+
+        try
+        {
+            Movie = await _catalogBackendClient.GetMovie(MovieId);
+        }
+        catch (HttpRequestException)
+        {
+            NotFound = true;
+        }
+
+        Loading = false;
+    }
+    
+}
