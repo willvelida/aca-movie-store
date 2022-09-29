@@ -32,6 +32,12 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Get ACR name
+        id: getacrname
+        run: |
+          acrName=$(az acr list --resource-group ${{ secrets.AZURE_RG }} --query "[0].name" -o tsv)
+          echo "::set-output name=acrName::$acrName"
+
       - name: Get ACR Credentials
         id: getacrcreds
         run: |
