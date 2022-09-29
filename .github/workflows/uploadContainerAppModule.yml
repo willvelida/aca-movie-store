@@ -44,7 +44,10 @@ jobs:
           loginServer=$(az acr list --resource-group ${{ secrets.AZURE_RG }} --query "[0].loginServer" -o tsv)
           loginName=$(az acr credential show -n ${{ steps.getacrname.outputs.acrName }} --resource-group ${{ secrets.AZURE_RG }} --query username -o tsv)
           password=$(az acr credential show -n ${{ steps.getacrname.outputs.acrName }} --resource-group ${{ secrets.AZURE_RG }} --query "passwords[0].value" -o tsv)
-
+          echo "::set-output name=loginServer::$loginServer"
+          echo "::set-output name=loginName::$loginName"
+          echo "::set-output name=password::$password"
+          
       - name: Login to ACR
         uses: azure/docker-login@v1
         with:
