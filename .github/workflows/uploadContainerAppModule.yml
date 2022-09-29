@@ -1,0 +1,53 @@
+name: Upload Container App Module
+
+on:
+  workflow_dispatch:
+    
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Lint Bicep
+        uses: Azure/cli@v1
+        with:
+          inlineScript: |
+            az bicep build --file ./deploy/modules/httpContainerApp.bicep
+
+  publish-module:
+    runs-on: ubuntu-latest
+    environment: Production
+    needs: lint
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get ACR Credentials
+        id: getacrcreds
+        run: |
+          loginServer=$(az acr list --resource-group ${{ secrets.AZURE_RG }} --query "[0].loginServer" -o tsv)
+          loginName=$(az acr credential show -n ${{ steps.getacrname.outputs.acrName }} --resource-group ${{ secrets.AZURE_RG }} --query username -o tsv)
+          password=$(az acr credential show -n ${{ steps.getacrname.outputs.acrName }} --resource-group ${{ secrets.AZURE_RG }} --query "passwords[0].value" -o tsv)
+
+      - name: Login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ steps.getacrcreds.outputs.loginServer }}
+          username: ${{ steps.getacrname.outputs.acrName }}
+          password: ${{ steps.getacrcreds.outputs.password }}
+      
+      - name: Deploy Bicep Module
+        uses: Azure/cli@v1
+        with:
+          inlineScript: |
+            az bicep publish httpContainerApp.bicep --target br:${{ steps.getacrserver.outputs.loginServer }}/httpContainerApp:${{ github.sha }}
