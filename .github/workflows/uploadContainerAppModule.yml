@@ -47,7 +47,7 @@ jobs:
           echo "::set-output name=loginServer::$loginServer"
           echo "::set-output name=loginName::$loginName"
           echo "::set-output name=password::$password"
-          
+
       - name: Login to ACR
         uses: azure/docker-login@v1
         with:
@@ -59,4 +59,4 @@ jobs:
         uses: Azure/cli@v1
         with:
           inlineScript: |
-            az bicep publish httpContainerApp.bicep --target br:${{ steps.getacrserver.outputs.loginServer }}/httpContainerApp:${{ github.sha }}
+            az bicep publish --file httpContainerApp.bicep --target br:${{ steps.getacrserver.outputs.loginServer }}/httpContainerApp:${{ github.sha }}
