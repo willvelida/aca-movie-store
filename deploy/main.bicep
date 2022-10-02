@@ -28,34 +28,8 @@ param sqlAdminUsername string
 @description('The SQL Admin Password')
 param sqlAdmin string
 
-@description('The container image used by the Catalog API')
-param catalogApiImage string
-
 // General Variables
 var movieDatabaseName = 'Movie'
-
-// Catalog API variables
-var catalogApiName = 'movie-catalog'
-var catalogApiCpu = '0.5'
-var catalogApiMemory = '1'
-var catlogApiEnv = [
-  {
-    name: 'ASPNETCORE_ENVIRONMENT'
-    value: 'Development'
-  }
-  {
-    name: 'APPINSIGHTS_CONNECTION_STRING'
-    value: appInsights.properties.ConnectionString
-  }
-  {
-    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-    value: appInsights.properties.InstrumentationKey
-  }
-  {
-    name: 'AZURE_SQL_CONNECTIONSTRING'
-    value: 'Server=tcp:${sql.outputs.sqlServerName}${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${sql.outputs.sqlDbName};Persist Security Info=False;User ID=${sql.outputs.sqlAdminLogin};Password=${sqlAdmin};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
-  }
-]
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
@@ -121,35 +95,5 @@ module env 'modules/containerAppEnvironment.bicep' = {
     location: location
     logAnalyticsCustomerId: logAnalytics.outputs.customerId 
     logAnalyticsSharedKey: keyVault.getSecret('log-analytics-shared-key')
-  }
-}
-
-module catalogApp 'modules/httpContainerApp.bicep' = {
-  name: 'catalog-app'
-  params: {
-    acrPasswordSecret: keyVault.getSecret('acr-primary-password') 
-    acrServerName: containerRegistry.outputs.loginServer
-    acrUsername: keyVault.getSecret('acr-username')
-    containerAppEnvId: env.outputs.containerAppEnvId
-    containerAppName: catalogApiName
-    containerImage: catalogApiImage
-    cpuCore: catalogApiCpu
-    isExternal: false
-    location: location
-    memorySize: catalogApiMemory
-    envVariables: catlogApiEnv
-    healthProbes: [
-      {
-        type: 'liveness'
-        httpGet: {
-          path: '/healthz/liveness'
-          port: 80
-        }
-        initialDelaySeconds: 15
-        periodSeconds: 30
-        failureThreshold: 3
-        timeoutSeconds: 1
-      }
-    ]
   }
 }

@@ -20,7 +20,7 @@ param appInsightsName string = 'appins${applicationName}'
 param sqlServerName string = 'sqldb${applicationName}'
 
 @description('The name of the SQL Database')
-param sqlDatabaseName string = 'Movies'
+param sqlDatabaseName string = 'Movie'
 
 @description('The container image used by the Catalog API')
 param catalogApiImage string
