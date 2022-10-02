@@ -10,6 +10,9 @@ defaults:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     steps:
       - uses: actions/checkout@v2
 
@@ -22,10 +25,13 @@ jobs:
         uses: Azure/cli@v1
         with:
           inlineScript: |
-            az bicep build --file ./MovieStore.Web.Infrastructure/main.bicep
+            az bicep build --file main.bicep
   
   validate:
     needs: lint
+    defaults:
+      run:
+        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -47,13 +53,16 @@ jobs:
         with:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: ./MovieStore.Web.Infrastructure/main.bicep
+          template: main.bicep
           deploymentMode: Validate
           parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
 
   preview:
     needs: [lint, validate]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     steps:
       - uses: actions/checkout@v2
       - uses: azure/login@v1
@@ -73,11 +82,14 @@ jobs:
         name: Run what-if
         with:
           inlineScript: |
-            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./MovieStore.Web.Infrastructure/main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
+            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
 
   deploy-infra:
     runs-on: ubuntu-latest
     environment: Production
+    defaults:
+      run:
+        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     needs: preview
     steps:
       - uses: actions/checkout@v2
@@ -100,7 +112,7 @@ jobs:
         with:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: ./MovieStore.Web.Infrastructure/main.bicep
+          template: main.bicep
           deploymentMode: Incremental
           parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
 
