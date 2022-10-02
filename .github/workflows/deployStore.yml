@@ -3,16 +3,9 @@ name: Build and Deploy Web App
 on:
   workflow_dispatch:
 
-defaults:
-  run:
-    working-directory: './src/MovieStore.Web'
-
 jobs:
   lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     steps:
       - uses: actions/checkout@v2
 
@@ -29,13 +22,10 @@ jobs:
         uses: Azure/cli@v1
         with:
           inlineScript: |
-            az bicep build --file ./main.bicep
+            az bicep build --file ./src/MovieStore.Web/MovieStore.Web.Infrastructure/main.bicep
   
   validate:
     needs: lint
-    defaults:
-      run:
-        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -57,16 +47,13 @@ jobs:
         with:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: ./main.bicep
+          template: ./src/MovieStore.Web/MovieStore.Web.Infrastructure/main.bicep
           deploymentMode: Validate
           parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
 
   preview:
     needs: [lint, validate]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     steps:
       - uses: actions/checkout@v2
       - uses: azure/login@v1
@@ -86,14 +73,11 @@ jobs:
         name: Run what-if
         with:
           inlineScript: |
-            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
+            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./src/MovieStore.Web/MovieStore.Web.Infrastructure/main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
 
   deploy-infra:
     runs-on: ubuntu-latest
     environment: Production
-    defaults:
-      run:
-        working-directory: './src/MovieStore.Web/MovieStore.Web.Infrastructure'
     needs: preview
     steps:
       - uses: actions/checkout@v2
@@ -116,13 +100,16 @@ jobs:
         with:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: ./main.bicep
+          template: ./src/MovieStore.Web/MovieStore.Web.Infrastructure/main.bicep
           deploymentMode: Incremental
           parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
 
   build-container-image:
     runs-on: ubuntu-latest
     needs: deploy-infra
+    defaults:
+      run:
+        working-directory: './src/MovieStore.Web'
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
