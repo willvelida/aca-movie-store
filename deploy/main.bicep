@@ -28,37 +28,11 @@ param sqlAdminUsername string
 @description('The SQL Admin Password')
 param sqlAdmin string
 
-@description('The container image used by the web app')
-param webAppImage string
-
 @description('The container image used by the Catalog API')
 param catalogApiImage string
 
 // General Variables
 var movieDatabaseName = 'Movie'
-
-// Movie Web App variables
-var movieWebAppName = 'movie-web'
-var movieWebAppCpu = '0.5'
-var movieWebAppMemory = '1'
-var movieWebAppEnv = [
-  {
-    name: 'ASPNETCORE_ENVIRONMENT'
-    value: 'Development'
-  }
-  {
-    name: 'APPINSIGHTS_CONNECTION_STRING'
-    value: appInsights.properties.ConnectionString
-  }
-  {
-    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-    value: appInsights.properties.InstrumentationKey
-  }
-  {
-    name: 'CatalogApi'
-    value: 'https://${catalogApp.outputs.fqdn}'
-  }
-]
 
 // Catalog API variables
 var catalogApiName = 'movie-catalog'
@@ -147,23 +121,6 @@ module env 'modules/containerAppEnvironment.bicep' = {
     location: location
     logAnalyticsCustomerId: logAnalytics.outputs.customerId 
     logAnalyticsSharedKey: keyVault.getSecret('log-analytics-shared-key')
-  }
-}
-
-module storeApp 'modules/httpContainerApp.bicep' = {
-  name: 'store-app'
-  params: {
-    acrPasswordSecret: keyVault.getSecret('acr-primary-password') 
-    acrServerName: containerRegistry.outputs.loginServer
-    acrUsername: keyVault.getSecret('acr-username')
-    containerAppEnvId: env.outputs.containerAppEnvId
-    containerAppName: movieWebAppName
-    containerImage: webAppImage
-    isExternal: true
-    location: location
-    cpuCore: movieWebAppCpu
-    memorySize: movieWebAppMemory
-    envVariables: movieWebAppEnv
   }
 }
 

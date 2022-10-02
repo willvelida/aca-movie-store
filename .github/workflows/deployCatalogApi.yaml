@@ -6,13 +6,108 @@ env:
 on:
   workflow_dispatch:
 
-defaults:
-  run:
-    working-directory: './src/MovieStore.Catalog'
-
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Lint Bicep
+        uses: Azure/cli@v1
+        with:
+          inlineScript: |
+            az bicep build --file ./src/MovieStore.Catalog/MovieStore.Catalog.Infrastructure/main.bicep
+
+  validate:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get existing catalog image
+        id: getimages
+        run: |
+          echo "Installing containerapp extension"
+          az extension add -n containerapp --yes
+          catalogImage=$(az containerapp show --name movie-catalog --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)  
+          echo "::set-output name=catalogImage::$catalogImage"
+
+      - name: Run preflight validation
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: ${{ github.run_number }}
+          resourceGroupName: ${{ secrets.AZURE_RG }}
+          template: ./src/MovieStore.Catalog/MovieStore.Catalog.Infrastructure/main.bicep
+          deploymentMode: Validate
+          parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
+
+  preview:
+    needs: [lint, validate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: azure/login@v1
+        name: Sign into Azure
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get existing catalog image
+        id: getimages
+        run: |
+          echo "Installing containerapp extension"
+          az extension add -n containerapp --yes
+          catalogImage=$(az containerapp show --name movie-catalog --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)  
+          echo "::set-output name=catalogImage::$catalogImage"
+      
+      - uses: Azure/cli@v1
+        name: Run what-if
+        with:
+          inlineScript: |
+            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./src/MovieStore.Catalog/MovieStore.Catalog.Infrastructure/main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
+
+  deploy-infra:
+    runs-on: ubuntu-latest
+    environment: Production
+    needs: preview
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get existing catalog image
+        id: getimages
+        run: |
+          echo "Installing containerapp extension"
+          az extension add -n containerapp --yes
+          catalogImage=$(az containerapp show --name movie-catalog --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)  
+          echo "::set-output name=catalogImage::$catalogImage"
+
+      - name: Deploy Bicep Template
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: ${{ github.run_number }}
+          resourceGroupName: ${{ secrets.AZURE_RG }}
+          template: ./src/MovieStore.Catalog/MovieStore.Catalog.Infrastructure/main.bicep
+          deploymentMode: Incremental
+          parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
+
   build-api-project:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './src/MovieStore.Catalog'
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
@@ -30,6 +125,9 @@ jobs:
   build-container-image:
     runs-on: ubuntu-latest
     needs: [build-api-project]
+    defaults:
+      run:
+        working-directory: './src/MovieStore.Catalog'
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
