@@ -40,6 +40,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: What's in this directory
+        run: |
+          ls -a
+
       - name: Get existing store image
         id: getimages
         run: |
