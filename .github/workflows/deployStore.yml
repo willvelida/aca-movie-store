@@ -8,8 +8,105 @@ defaults:
     working-directory: './src/MovieStore.Web'
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Lint Bicep
+        uses: Azure/cli@v1
+        with:
+          inlineScript: |
+            az bicep build --file ./MovieStore.Web.Infrastructure/main.bicep
+  
+  validate:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get existing store image
+        id: getimages
+        run: |
+          echo "Installing containerapp extension"
+          az extension add -n containerapp --yes
+          webImage=$(az containerapp show --name movie-web --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)
+          echo "::set-output name=webImage::$webImage"
+
+      - name: Run preflight validation
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: ${{ github.run_number }}
+          resourceGroupName: ${{ secrets.AZURE_RG }}
+          template: ./MovieStore.Web.Infrastructure/main.bicep
+          deploymentMode: Validate
+          parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
+
+  preview:
+    needs: [lint, validate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: azure/login@v1
+        name: Sign into Azure
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get existing store image
+        id: getimages
+        run: |
+          echo "Installing containerapp extension"
+          az extension add -n containerapp --yes
+          webImage=$(az containerapp show --name movie-web --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)
+          echo "::set-output name=webImage::$webImage"
+      
+      - uses: Azure/cli@v1
+        name: Run what-if
+        with:
+          inlineScript: |
+            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./MovieStore.Web.Infrastructure/main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
+
+  deploy-infra:
+    runs-on: ubuntu-latest
+    environment: Production
+    needs: preview
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Sign into Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get existing store image
+        id: getimages
+        run: |
+          echo "Installing containerapp extension"
+          az extension add -n containerapp --yes
+          webImage=$(az containerapp show --name movie-web --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)
+          echo "::set-output name=webImage::$webImage"
+
+      - name: Deploy Bicep Template
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: ${{ github.run_number }}
+          resourceGroupName: ${{ secrets.AZURE_RG }}
+          template: ./MovieStore.Web.Infrastructure/main.bicep
+          deploymentMode: Incremental
+          parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
+
   build-container-image:
     runs-on: ubuntu-latest
+    needs: deploy-infra
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
