@@ -29,7 +29,7 @@ jobs:
         uses: Azure/cli@v1
         with:
           inlineScript: |
-            az bicep build --file main.bicep
+            az bicep build --file ./main.bicep
   
   validate:
     needs: lint
@@ -57,7 +57,7 @@ jobs:
         with:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: main.bicep
+          template: ./main.bicep
           deploymentMode: Validate
           parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
 
@@ -86,7 +86,7 @@ jobs:
         name: Run what-if
         with:
           inlineScript: |
-            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
+            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./main.bicep --parameters webAppImage=${{ steps.getimages.outputs.webImage }}     
 
   deploy-infra:
     runs-on: ubuntu-latest
@@ -116,7 +116,7 @@ jobs:
         with:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: main.bicep
+          template: ./main.bicep
           deploymentMode: Incremental
           parameters: webAppImage=${{ steps.getimages.outputs.webImage }}
 
