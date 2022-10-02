@@ -23,7 +23,7 @@ jobs:
   publish-module:
     runs-on: ubuntu-latest
     environment: Production
-    needs: lint
+    needs: validate-module
     steps:
       - uses: actions/checkout@v2
 
