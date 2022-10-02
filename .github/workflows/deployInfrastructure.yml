@@ -29,16 +29,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Get existing images
-        id: getimages
-        run: |
-          echo "Installing containerapp extension"
-          az extension add -n containerapp --yes
-          webImage=$(az containerapp show --name movie-web --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)
-          catalogImage=$(az containerapp show --name movie-catalog --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)          
-          echo "::set-output name=catalogImage::$catalogImage"
-          echo "::set-output name=webImage::$webImage"
-
       - name: Run preflight validation
         uses: azure/arm-deploy@v1
         with:
@@ -46,7 +36,7 @@ jobs:
           resourceGroupName: ${{ secrets.AZURE_RG }}
           template: ./deploy/main.bicep
           deploymentMode: Validate
-          parameters: sqlAdminUsername=${{ secrets.SQL_USERNAME }} sqlAdmin=${{ secrets.SQL_PASSWORD }} catalogApiImage=${{ steps.getimages.outputs.catalogImage }} webAppImage=${{ steps.getimages.outputs.webImage }}
+          parameters: sqlAdminUsername=${{ secrets.SQL_USERNAME }} sqlAdmin=${{ secrets.SQL_PASSWORD }}
 
   preview:
     needs: [lint, validate]
@@ -57,22 +47,12 @@ jobs:
         name: Sign into Azure
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Get existing images
-        id: getimages
-        run: |
-          echo "Installing containerapp extension"
-          az extension add -n containerapp --yes
-          webImage=$(az containerapp show --name movie-web --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)
-          catalogImage=$(az containerapp show --name movie-catalog --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)          
-          echo "::set-output name=catalogImage::$catalogImage"
-          echo "::set-output name=webImage::$webImage"
       
       - uses: Azure/cli@v1
         name: Run what-if
         with:
           inlineScript: |
-            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./deploy/main.bicep --parameters sqlAdminUsername=${{ secrets.SQL_USERNAME }} sqlAdmin=${{ secrets.SQL_PASSWORD }} catalogApiImage=${{ steps.getimages.outputs.catalogImage }} webAppImage=${{ steps.getimages.outputs.webImage }}
+            az deployment group what-if --resource-group ${{ secrets.AZURE_RG }} --template-file ./deploy/main.bicep --parameters sqlAdminUsername=${{ secrets.SQL_USERNAME }} sqlAdmin=${{ secrets.SQL_PASSWORD }}
   
   deploy-infra:
     runs-on: ubuntu-latest
@@ -86,16 +66,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Get existing images
-        id: getimages
-        run: |
-          echo "Installing containerapp extension"
-          az extension add -n containerapp --yes
-          webImage=$(az containerapp show --name movie-web --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)
-          catalogImage=$(az containerapp show --name movie-catalog --resource-group ${{ secrets.AZURE_RG }} --query "properties.template.containers[0].image" -o tsv)          
-          echo "::set-output name=catalogImage::$catalogImage"
-          echo "::set-output name=webImage::$webImage"
-
       - name: Deploy Bicep Template
         uses: azure/arm-deploy@v1
         with:
@@ -103,4 +73,4 @@ jobs:
           resourceGroupName: ${{ secrets.AZURE_RG }}
           template: ./deploy/main.bicep
           deploymentMode: Incremental
-          parameters: sqlAdminUsername=${{ secrets.SQL_USERNAME }} sqlAdmin=${{ secrets.SQL_PASSWORD }} catalogApiImage=${{ steps.getimages.outputs.catalogImage }} webAppImage=${{ steps.getimages.outputs.webImage }}
+          parameters: sqlAdminUsername=${{ secrets.SQL_USERNAME }} sqlAdmin=${{ secrets.SQL_PASSWORD }}
