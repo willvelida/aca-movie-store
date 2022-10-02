@@ -59,4 +59,4 @@ jobs:
         uses: Azure/cli@v1
         with:
           inlineScript: |
-            az bicep publish --file ./deploy/modules/httpContainerApp.bicep --target br:${{ steps.getacrserver.outputs.loginServer }}/modules/http-container-app:${{ github.sha }}
+            az bicep publish --file ./deploy/modules/httpContainerApp.bicep --target br:${{ steps.getacrname.outputs.acrName }}.azurecr.io/modules/http-container-app:${{ github.sha }}
