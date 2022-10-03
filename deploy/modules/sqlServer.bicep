@@ -16,6 +16,9 @@ param adminLogin string
 @description('The name of the Key Vault to store the SQL secrets')
 param keyVaultName string
 
+@description('The tags to apply to the SQL Server')
+param tags object
+
 var sqlConnectionString = 'sql-connection-string'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
@@ -24,6 +27,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
 
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   name: sqlServerName
+  tags: tags
   location: location
   properties: {
    administratorLogin: adminLoginUserName

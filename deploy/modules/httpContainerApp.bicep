@@ -36,9 +36,13 @@ param memorySize string
 @description('The probes to apply in this Container App')
 param healthProbes array = []
 
+@description('The tags to apply to this Container App')
+param tags object
+
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: containerAppName
   location: location
+  tags: tags
   properties: {
    managedEnvironmentId: containerAppEnvId
    configuration: {

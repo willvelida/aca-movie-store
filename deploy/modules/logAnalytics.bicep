@@ -7,6 +7,9 @@ param location string
 @description('The name of the Key Vault')
 param keyVaultName string
 
+@description('The tags to apply to this Log Analytics resource')
+param tags object
+
 var sharedKeySecretName = 'log-analytics-shared-key'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
@@ -16,6 +19,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
   name: logAnalyticsWorkspaceName
   location: location
+  tags: tags
   properties: {
    retentionInDays: 30
    features: {

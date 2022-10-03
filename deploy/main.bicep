@@ -28,12 +28,21 @@ param sqlAdminUsername string
 @description('The SQL Admin Password')
 param sqlAdmin string
 
+@description('The latest deployment timestamp')
+param lastDeployed string = utcNow('d')
+
 // General Variables
 var movieDatabaseName = 'Movie'
+var tags = {
+  ApplicationName: 'MovieStore'
+  Environment: 'Production'
+  LastDeployed: lastDeployed
+}
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
   location: location
+  tags: tags
   properties: {
     sku: {
       family: 'A'
@@ -50,6 +59,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
+  tags: tags
   location: location
   kind: 'web'
   properties: {
@@ -61,6 +71,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 module logAnalytics 'modules/logAnalytics.bicep' = {
   name: 'log-analytics'
   params: {
+    tags: tags
     keyVaultName: keyVault.name
     location: location
     logAnalyticsWorkspaceName: logAnalyticsWorkspaceName
@@ -70,6 +81,7 @@ module logAnalytics 'modules/logAnalytics.bicep' = {
 module containerRegistry 'modules/containerRegistry.bicep' = {
   name: 'acr'
   params: {
+    tags: tags
     containerRegistryName: containerRegistryName
     keyVaultName: keyVault.name
     location: location
@@ -79,6 +91,7 @@ module containerRegistry 'modules/containerRegistry.bicep' = {
 module sql 'modules/sqlServer.bicep' = {
   name: 'sql'
   params: {
+    tags: tags
     adminLogin: sqlAdmin
     adminLoginUserName: sqlAdminUsername
     keyVaultName: keyVault.name
@@ -95,5 +108,6 @@ module env 'modules/containerAppEnvironment.bicep' = {
     location: location
     logAnalyticsCustomerId: logAnalytics.outputs.customerId 
     logAnalyticsSharedKey: keyVault.getSecret('log-analytics-shared-key')
+    tags: tags
   }
 }

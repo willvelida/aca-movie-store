@@ -7,6 +7,9 @@ param location string
 @description('The name of the Key Vault')
 param keyVaultName string
 
+@description('Tags applied to this resource')
+param tags object
+
 var primaryPasswordSecret = 'acr-primary-password'
 var secondaryPasswordSecret = 'acr-secondary-password'
 var usernameSecret = 'acr-username'
@@ -18,6 +21,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   name: containerRegistryName
   location: location
+  tags: tags
   sku: {
     name: 'Basic'
   }
