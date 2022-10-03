@@ -31,6 +31,9 @@ param adminLoginUserName string
 @description('The SQL Admin Password')
 param sqlAdmin string
 
+@description('The latest deployment timestamp')
+param lastDeployed string = utcNow('d')
+
 var catalogApiName = 'movie-catalog'
 var catalogApiCpu = '0.5'
 var catalogApiMemory = '1'
@@ -53,6 +56,13 @@ var catlogApiEnv = [
   }
 ]
 
+var tags = {
+  ApplicationName: 'MovieStore'
+  Environment: 'Production'
+  LastDeployed: lastDeployed
+  ServiceName: 'Catalog'
+}
+
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
   name: containerRegistryName
 }
@@ -73,9 +83,10 @@ resource sql 'Microsoft.Sql/servers@2022-02-01-preview' existing = {
   name: sqlServerName
 }
 
-module catalogApp 'br:acr5e7hkjc24cx2u.azurecr.io/modules/http-container-app:e643e49796bac2b13f11df32514aba5b04c4da4b' = {
+module catalogApp 'br:acr5e7hkjc24cx2u.azurecr.io/modules/http-container-app:1d8cd9c41af3577f5cd04061ce06e7d456b9e965' = {
   name: 'catalog-app'
   params: {
+    tags: tags
     acrPasswordSecret: keyVault.getSecret('acr-primary-password') 
     acrServerName: containerRegistry.properties.loginServer
     acrUsername: keyVault.getSecret('acr-username')
