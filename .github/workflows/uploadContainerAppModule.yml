@@ -19,11 +19,10 @@ jobs:
         with:
           inlineScript: |
             az bicep build --file ./deploy/modules/httpContainerApp.bicep
-
+ 
   publish-module:
     runs-on: ubuntu-latest
     environment: Production
-    needs: validate-module
     steps:
       - uses: actions/checkout@v2
 
