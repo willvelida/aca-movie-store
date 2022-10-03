@@ -2,18 +2,13 @@
 
 <PageTitle>MovieStore.Web</PageTitle>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="top-bar">
+    <NavLink href="" class="nav-tab" Match="NavLinkMatch.All">
+        <img src="img/icons8-movie-50.png" />
+        <div>Movies</div>
+    </NavLink>
+</div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+<div class="content">
+    @Body
 </div>

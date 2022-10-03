@@ -1,7 +1,9 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Identity.Web;
 using MovieStore.Catalog.Repository;
 using MovieStore.Catalog.Repository.Interfaces;
 using MovieStore.Catalog.Services;

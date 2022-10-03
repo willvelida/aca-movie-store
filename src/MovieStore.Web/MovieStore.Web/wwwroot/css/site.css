@@ -22,6 +22,97 @@ a, .btn-link {
     padding-top: 1.1rem;
 }
 
+.top-bar {
+    height: 5rem;
+    background-color: rgb(192,0,0);
+    background-image: linear-gradient(rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.25) 25%, rgba(0,0,0,0) 70%);
+    display: flex;
+    align-items: stretch;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    padding: 0 3rem;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+}
+
+.logo {
+    display: flex;
+}
+
+    .logo > img {
+        margin-right: 3rem;
+        width: 9rem;
+    }
+
+.movie-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 20rem);
+    grid-gap: 2rem;
+    justify-content: center;
+    padding-left: 0;
+}
+
+    .movie-card > li {
+        height: 10rem;
+        position: relative;
+        background-size: cover;
+        border-radius: 0.5rem;
+        list-style-type: none;
+        box-shadow: 0 3px 4px rgba(0,0,0,0.4);
+        transition: 0.1s ease-out;
+    }
+
+        .movie-card > li:hover {
+            transform: scale(1.02);
+        }
+
+.movie-info {
+    border-radius: 0.5rem;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    background: linear-gradient(rgba(0,0,0,0.7) 30%, rgba(0,0,0,0) 80%);
+    padding: 1rem 1rem;
+    color: #fff2cc;
+    cursor: pointer;
+    text-shadow: 0 2px 2px rgba(0,0,0,0.5);
+    line-height: 1.25rem;
+}
+
+    .movie-info .title {
+        color: white;
+        font-size: 1.4rem;
+        display: block;
+        margin: 0.2rem 0 0.4rem 0;
+        font-family: 'Bahnschrift', Arial, Helvetica, sans-serif;
+        text-transform: uppercase;
+    }
+
+    .movie-info .price {
+        position: absolute;
+        bottom: 0.5rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        padding: 0rem 0.7rem;
+        border-radius: 4px;
+        background-color: #08af08;
+        color: white;
+        line-height: 2rem;
+    }
+
+.price:before {
+    content: '$';
+    font-weight: 300;
+    font-size: 1.2rem;
+    margin-right: 0.2rem;
+}
+
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }

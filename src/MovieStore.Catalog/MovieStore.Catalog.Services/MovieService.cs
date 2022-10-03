@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using MovieStore.Catalog.Common.Models;
 using MovieStore.Catalog.Repository.Interfaces;
 using MovieStore.Catalog.Services.Interfaces;

@@ -6,29 +6,23 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>Movie Store</h1>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">Title</th>
-            <th scope="col">Release Date</th>
-            <th scope="col">Genre</th>
-            <th scope="col">Price</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var movie in _movies)
+<div class="main">
+    <ul class="movie-card">
+        @if (_movies != null)
         {
-            <tr>
-                <td><a href="/movie/@movie.Id">@movie.Title</a></td>
-                <td>@movie.ReleaseDate</td>
-                <td>@movie.Genre</td>
-                <td>@movie.Price</td>
-            </tr>
+            @foreach (var movie in _movies)
+            {
+                <li style="background-image: url('@movie.PosterUrl')">
+                    <div class="movie-info">
+                        <span class="title"><a href="/movie/@movie.Id">@movie.Title</a></span>
+                        @movie.Tagline
+                        <span class="price">@movie.Price</span>
+                    </div>
+                </li>
+            }
         }
-    </tbody>
-</table>
+    </ul>
+</div>
 
 @code
 {
